@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Onyx | Quantum-Ready Security",
+  title: "Onyx",
   description:
     "Onyx prepares organizations for the quantum era through awareness, assessment, and defense-in-depth mitigation.",
 };
