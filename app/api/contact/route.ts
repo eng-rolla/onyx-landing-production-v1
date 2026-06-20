@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { validateEmailDeliverability } from "@/lib/email-deliverability";
 import { sendEmail, verifyTurnstile } from "@/lib/email";
 import { validateContactMessage, validateEmail, validateFullName } from "@/lib/form-security";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -48,6 +49,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ email: emailValidation.message }, { status: 400 });
   }
   const email = emailValidation.value;
+
+  const deliverability = await validateEmailDeliverability(email);
+  if (!deliverability.ok) {
+    return NextResponse.json({ email: deliverability.message }, { status: 400 });
+  }
 
   const messageValidation = validateContactMessage(readString(payload, "message"));
   if (!messageValidation.ok) {

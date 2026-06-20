@@ -3223,32 +3223,6 @@
           pointer-events: none;
         }
 
-        .landing-page .footer-floor__waves {
-          position: absolute;
-          left: -6%;
-          bottom: -3%;
-          width: 112%;
-          height: 380px;
-          transform-origin: center bottom;
-          transform: perspective(1180px) rotateX(74deg) translateY(16px) scaleY(1.22);
-          opacity: .96;
-          filter:
-            drop-shadow(0 0 8px rgba(56, 189, 248, .28))
-            drop-shadow(0 0 18px rgba(168, 85, 247, .12));
-          mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.9) 10%, rgba(0,0,0,1) 100%);
-          animation: footerWaveDrift 20s linear infinite;
-          pointer-events: none;
-        }
-
-        .landing-page .footer-floor__waves circle {
-          animation: footerParticlePulse 6.5s ease-in-out infinite;
-        }
-
-        .landing-page.is-form-active .footer-floor__waves,
-        .landing-page.is-form-active .footer-floor__waves circle {
-          animation-play-state: paused;
-        }
-
         .landing-page .footer-floor__inner {
           position: relative;
           width: min(1260px, 92vw);
@@ -3343,17 +3317,6 @@
           width: min(390px, 100%);
           padding-left: clamp(2rem, 4vw, 2.7rem);
           border-left: 1px solid rgba(255,255,255,.12);
-        }
-
-        @keyframes footerWaveDrift {
-          0% { transform: perspective(1180px) rotateX(74deg) translate3d(0, 16px, 0) scaleY(1.22); }
-          50% { transform: perspective(1180px) rotateX(74deg) translate3d(-18px, 12px, 0) scaleY(1.22); }
-          100% { transform: perspective(1180px) rotateX(74deg) translate3d(-36px, 16px, 0) scaleY(1.22); }
-        }
-
-        @keyframes footerParticlePulse {
-          0%, 100% { opacity: .68; }
-          50% { opacity: 1; }
         }
 
         .landing-page .newsletter-form {
@@ -4005,12 +3968,6 @@
             padding-top: 1.5rem;
             border-left: 0;
             border-top: 1px solid rgba(255,255,255,.12);
-          }
-
-          .landing-page .footer-floor__waves {
-            height: 300px;
-            left: -10%;
-            width: 120%;
           }
 
           .landing-page .readiness-section {

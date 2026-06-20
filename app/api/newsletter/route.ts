@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { validateEmailDeliverability } from "@/lib/email-deliverability";
 import { sendEmail } from "@/lib/email";
 import { validateEmail } from "@/lib/form-security";
 import { addNewsletterEmail, hasNewsletterEmail } from "@/lib/newsletter-store";
@@ -113,6 +114,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ email: emailValidation.message }, { status: 400 });
   }
   const email = emailValidation.value;
+
+  const deliverability = await validateEmailDeliverability(email);
+  if (!deliverability.ok) {
+    return NextResponse.json({ email: deliverability.message }, { status: 400 });
+  }
 
   if (await hasNewsletterEmail(email)) {
     return NextResponse.json({ email: "This email is already subscribed to the newsletter." }, { status: 409 });

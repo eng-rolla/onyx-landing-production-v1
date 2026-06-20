@@ -40,8 +40,6 @@ type AudienceOrbit = {
   nodes: AudienceOrbitNode[];
 };
 
-const stableSvgNumber = (value: number) => Number(value.toFixed(3));
-
 const audienceOrbits: AudienceOrbit[] = [
   {
     id: "outer",
@@ -237,34 +235,6 @@ export default function LandingPage() {
     },
   ];
 
-  const footerWaveBands = [
-    { baseline: 126, amplitude: 18, phase: 0.2, color: "#67e8f9" },
-    { baseline: 168, amplitude: 22, phase: 0.86, color: "#8b5cf6" },
-    { baseline: 214, amplitude: 20, phase: 1.45, color: "#38bdf8" },
-    { baseline: 262, amplitude: 24, phase: 2.05, color: "#c084fc" },
-    { baseline: 314, amplitude: 18, phase: 2.62, color: "#22d3ee" },
-  ];
-
-  const footerWaveParticles = footerWaveBands.flatMap((band, bandIndex) =>
-    Array.from({ length: 68 }, (_, pointIndex) => {
-      const x = pointIndex * 24;
-      const y =
-        band.baseline +
-        Math.sin(pointIndex * 0.34 + band.phase) * band.amplitude +
-        Math.cos(pointIndex * 0.17 + band.phase * 1.8) * (6 + bandIndex);
-      const radius = pointIndex % 9 === 0 ? 1.9 : pointIndex % 4 === 0 ? 1.45 : 1.1;
-      const opacity = pointIndex % 10 === 0 ? 0.95 : pointIndex % 3 === 0 ? 0.74 : 0.52;
-
-      return {
-        key: `${bandIndex}-${pointIndex}`,
-        cx: stableSvgNumber(x),
-        cy: stableSvgNumber(y),
-        r: radius,
-        color: band.color,
-        opacity,
-      };
-    }),
-  );
   const readinessRingRadius = 68;
   const readinessRingCircumference = 2 * Math.PI * readinessRingRadius;
   const activeAudience = activeAudienceId === null ? null : audienceNodes.find((audience) => audience.id === activeAudienceId) ?? null;
@@ -1019,19 +989,6 @@ export default function LandingPage() {
           </div>
 
           <footer className="footer-floor">
-            <svg className="footer-floor__waves" viewBox="0 0 1600 420" preserveAspectRatio="none" aria-hidden="true">
-              {footerWaveParticles.map((particle, index) => (
-                <circle
-                  key={particle.key}
-                  cx={particle.cx}
-                  cy={particle.cy}
-                  r={particle.r}
-                  fill={particle.color}
-                  opacity={particle.opacity}
-                  style={{ animationDelay: `${(index % 12) * 0.24}s` }}
-                />
-              ))}
-            </svg>
             <div className="footer-floor__inner">
               <div className="footer-floor__meta">
                 <Image
