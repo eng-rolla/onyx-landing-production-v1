@@ -1,0 +1,203 @@
+"use client";
+
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { HiOutlineEnvelope } from "react-icons/hi2";
+
+import { MAX_EMAIL_LENGTH, validateEmail } from "@/lib/form-security";
+
+type SubmitStatus = "idle" | "submitting" | "success" | "error";
+
+const STORAGE_KEY = "onyx_waitlist_email_hashes";
+const MIN_SUBMIT_INTERVAL_MS = 1800;
+
+function extractApiMessage(payload: unknown) {
+  if (!payload || typeof payload !== "object") return "";
+  const record = payload as Record<string, unknown>;
+
+  for (const key of ["detail", "message", "email"]) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value;
+    if (Array.isArray(value) && typeof value[0] === "string") return value[0];
+  }
+
+  return "";
+}
+
+async function sha256(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function readStoredHashes() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function storeEmailHash(hash: string) {
+  const hashes = new Set(readStoredHashes());
+  hashes.add(hash);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(hashes).slice(-40)));
+}
+
+export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const honeypotRef = useRef<HTMLInputElement>(null);
+  const lastSubmitAtRef = useRef(0);
+  const [status, setStatus] = useState<SubmitStatus>("idle");
+  const [feedback, setFeedback] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    setStatus("idle");
+    setFeedback("");
+    window.setTimeout(() => emailRef.current?.focus(), 40);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (status === "submitting") return;
+
+    const now = Date.now();
+    if (now - lastSubmitAtRef.current < MIN_SUBMIT_INTERVAL_MS) {
+      setStatus("error");
+      setFeedback("Please wait a moment before trying again.");
+      return;
+    }
+    lastSubmitAtRef.current = now;
+
+    const emailValidation = validateEmail(emailRef.current?.value ?? "");
+    if (!emailValidation.ok) {
+      setStatus("error");
+      setFeedback(emailValidation.message);
+      return;
+    }
+    const email = emailValidation.value;
+
+    const emailHash = await sha256(email);
+    if (readStoredHashes().includes(emailHash)) {
+      setStatus("error");
+      setFeedback("This email is already on the waitlist.");
+      return;
+    }
+
+    setStatus("submitting");
+    setFeedback("");
+
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          website: honeypotRef.current?.value ?? "",
+        }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as { detail?: string };
+
+      if (!response.ok) {
+        throw new Error(extractApiMessage(payload) || "Could not join the waitlist. Please try again.");
+      }
+
+      storeEmailHash(emailHash);
+      setStatus("success");
+      setFeedback(payload.detail ?? "You are on the waitlist.");
+      if (emailRef.current) emailRef.current.value = "";
+    } catch (error) {
+      setStatus("error");
+      setFeedback(error instanceof Error ? error.message : "Could not join the waitlist. Please try again.");
+    }
+  }
+
+  function handleDialogKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      onClose();
+    }
+  }
+
+  return (
+    <div className="waitlist-modal" role="presentation" onMouseDown={onClose} onKeyDown={handleDialogKeyDown}>
+      <div
+        ref={dialogRef}
+        className="waitlist-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="waitlist-modal-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="waitlist-modal__close" type="button" onClick={onClose} aria-label="Close waitlist dialog">
+          ×
+        </button>
+
+        <div className="waitlist-modal__copy">
+          <h2 id="waitlist-modal-title">
+            Join <span>Waitlist</span>
+          </h2>
+          <p>
+            Be among the first to access <span>Onyx</span> when we launch.
+          </p>
+        </div>
+
+        <form className="waitlist-form" onSubmit={handleSubmit} noValidate>
+          <div className="newsletter-form__field">
+            <div className="waitlist-form__input-wrap">
+              <HiOutlineEnvelope className="waitlist-form__email-icon" aria-hidden="true" />
+              <input
+                ref={emailRef}
+                id="waitlist-email"
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                maxLength={MAX_EMAIL_LENGTH}
+                placeholder="you@gmail.com"
+                aria-label="Email address"
+                aria-invalid={status === "error" && Boolean(feedback)}
+                aria-describedby={feedback ? "waitlist-feedback" : undefined}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="contact-form__hp" aria-hidden="true">
+            <label htmlFor="waitlist-website">Website</label>
+            <input id="waitlist-website" name="website" type="text" tabIndex={-1} autoComplete="off" ref={honeypotRef} />
+          </div>
+
+          <button className="btn-grad waitlist-form__submit" type="submit" disabled={status === "submitting"}>
+            <span>{status === "submitting" ? "Joining..." : "Join Waitlist"}</span>
+          </button>
+
+          {feedback ? (
+            <p
+              className={`contact-form__feedback contact-form__feedback--${status === "success" ? "success" : "error"}`}
+              id="waitlist-feedback"
+              role="status"
+              aria-live="polite"
+            >
+              {feedback}
+            </p>
+          ) : null}
+        </form>
+      </div>
+    </div>
+  );
+}
