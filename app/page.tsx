@@ -342,10 +342,7 @@ export default function LandingPage() {
       setSceneReady(true);
       resetSceneMount();
       try {
-        const landingModulePath = "/landing/onyx-landing.mjs";
-        const landingRuntime = (await import(
-          /* webpackIgnore: true */ landingModulePath
-        )) as LandingRuntimeModule;
+        const landingRuntime = (await import("@/lib/onyx-landing-runtime")) as LandingRuntimeModule;
         if (cancelled) return;
         landingCleanup =
           typeof landingRuntime.mountOnyxLanding === "function" ? landingRuntime.mountOnyxLanding() : null;

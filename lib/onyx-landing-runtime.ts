@@ -1,8 +1,10 @@
-import * as THREE from "https://esm.run/three@0.158.0";
-import { EffectComposer } from "https://esm.run/three@0.158.0/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "https://esm.run/three@0.158.0/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "https://esm.run/three@0.158.0/examples/jsm/postprocessing/UnrealBloomPass.js";
-import SimplexNoise from "https://esm.run/simplex-noise@2.4.0";
+// @ts-nocheck
+
+import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import SimplexNoise from "simplex-noise";
 
 export function mountOnyxLanding() {
   const root = document.querySelector(".landing-page");
