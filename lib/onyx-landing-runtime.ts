@@ -182,6 +182,12 @@ export function mountOnyxLanding() {
     if (width <= 900) return 0.86;
     return 1;
   };
+  const getMobileNebulaOverscan = () => {
+    const width = window.innerWidth;
+    if (width <= 640) return 1.14;
+    if (width <= 900) return 1.07;
+    return 1;
+  };
 
   const getSceneViewportWidth = () => Math.max(sceneMount.clientWidth || window.innerWidth, 1);
   const getSceneViewportHeight = () => Math.max(sceneMount.clientHeight || window.innerHeight, 1);
@@ -727,7 +733,8 @@ export function mountOnyxLanding() {
       sp.position.y = lerp(basePos.y, targetPos.y, nebWeight);
       sp.position.z = lerp(basePos.z, targetPos.z, nebWeight);
       const baseScaled = lerp(baseScale, targetScale, nebWeight);
-      const scl = idx === 2 ? baseScaled * (1 - readinessNebulaFade * 0.1) : baseScaled;
+      const overscanScale = getMobileNebulaOverscan();
+      const scl = (idx === 2 ? baseScaled * (1 - readinessNebulaFade * 0.1) : baseScaled) * overscanScale;
       sp.scale.setScalar(scl);
       const nebulaFadeStrength = idx === 2 ? 1.85 : 1.42;
       const faqFade = nebulaBaseOpacities[idx] * Math.max(0, 1 - faqBackdrop * nebulaFadeStrength);

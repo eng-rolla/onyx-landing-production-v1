@@ -4421,6 +4421,11 @@
             overflow-x: clip;
           }
 
+          .landing-page .safari-hero-nebula {
+            inset: -10svh -16vw;
+            transform-origin: 68% 46%;
+          }
+
           .landing-page #scene {
             width: 100vw;
             max-width: 100vw;
