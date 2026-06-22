@@ -238,8 +238,9 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
             className="btn-grad waitlist-form__submit"
             type="submit"
             disabled={status === "submitting" || verificationPending}
+            aria-busy={verificationPending}
           >
-            <span>{status === "submitting" ? "Joining..." : verificationPending ? "Verifying your browser..." : "Join Waitlist"}</span>
+            <span>{status === "submitting" ? "Joining..." : "Join Waitlist"}</span>
           </button>
 
           {feedback ? (

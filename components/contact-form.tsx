@@ -268,8 +268,9 @@ export function ContactForm() {
           className="btn-grad contact-form__submit"
           type="submit"
           disabled={status === "submitting" || verificationPending}
+          aria-busy={verificationPending}
         >
-          {status === "submitting" ? "Sending…" : verificationPending ? "Verifying your browser..." : "Send message"}
+          {status === "submitting" ? "Sending…" : "Send message"}
         </button>
 
         {status === "error" && feedback ? (
