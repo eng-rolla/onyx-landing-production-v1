@@ -30,8 +30,15 @@ export function NewsletterForm() {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [widgetNonce, setWidgetNonce] = useState(0);
   const emailRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
-  const verificationPending = Boolean(TURNSTILE_SITE_KEY && !turnstileToken);
+  const pendingSubmitRef = useRef(false);
+
+  useEffect(() => {
+    if (!turnstileToken || !pendingSubmitRef.current) return;
+    pendingSubmitRef.current = false;
+    formRef.current?.requestSubmit();
+  }, [turnstileToken]);
 
   useEffect(() => {
     if (!toastVisible) return;
@@ -61,8 +68,9 @@ export function NewsletterForm() {
     const email = emailValidation.value;
 
     if (TURNSTILE_SITE_KEY && !turnstileToken) {
-      setStatus("error");
-      setFeedback("Please complete the verification challenge.");
+      pendingSubmitRef.current = true;
+      setStatus("idle");
+      setFeedback("");
       return;
     }
 
@@ -96,6 +104,7 @@ export function NewsletterForm() {
       setStatus("error");
       setFeedback(error instanceof Error ? error.message : "Could not subscribe. Please try again.");
     } finally {
+      pendingSubmitRef.current = false;
       setTurnstileToken("");
       if (TURNSTILE_SITE_KEY) setWidgetNonce((nonce) => nonce + 1);
     }
@@ -127,7 +136,7 @@ export function NewsletterForm() {
         </div>
       ) : null}
 
-      <form className="newsletter-form" onSubmit={handleSubmit} noValidate>
+      <form ref={formRef} className="newsletter-form" onSubmit={handleSubmit} noValidate>
         <div className="newsletter-form__row">
           <div className="newsletter-form__field">
             <label htmlFor="newsletter-email">Email</label>
@@ -164,8 +173,12 @@ export function NewsletterForm() {
             key={widgetNonce}
             siteKey={TURNSTILE_SITE_KEY}
             onVerify={setTurnstileToken}
-            onExpire={() => setTurnstileToken("")}
+            onExpire={() => {
+              pendingSubmitRef.current = false;
+              setTurnstileToken("");
+            }}
             onError={() => {
+              pendingSubmitRef.current = false;
               setTurnstileToken("");
               setStatus("error");
               setFeedback("Verification could not load. Check your connection and try again.");
@@ -176,8 +189,7 @@ export function NewsletterForm() {
         <button
           className="btn-outline"
           type="submit"
-          disabled={status === "submitting" || verificationPending}
-          aria-busy={verificationPending}
+          disabled={status === "submitting"}
         >
           {status === "submitting" ? "Subscribing..." : "Subscribe"}
         </button>

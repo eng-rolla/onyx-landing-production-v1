@@ -50,14 +50,21 @@ function storeEmailHash(hash: string) {
 
 export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const lastSubmitAtRef = useRef(0);
+  const pendingSubmitRef = useRef(false);
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [feedback, setFeedback] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [widgetNonce, setWidgetNonce] = useState(0);
-  const verificationPending = Boolean(TURNSTILE_SITE_KEY && !turnstileToken);
+
+  useEffect(() => {
+    if (!turnstileToken || !pendingSubmitRef.current) return;
+    pendingSubmitRef.current = false;
+    formRef.current?.requestSubmit();
+  }, [turnstileToken]);
 
   useEffect(() => {
     if (!open) return;
@@ -81,14 +88,6 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
     event.preventDefault();
     if (status === "submitting") return;
 
-    const now = Date.now();
-    if (now - lastSubmitAtRef.current < MIN_SUBMIT_INTERVAL_MS) {
-      setStatus("error");
-      setFeedback("Please wait a moment before trying again.");
-      return;
-    }
-    lastSubmitAtRef.current = now;
-
     const emailValidation = validateEmail(emailRef.current?.value ?? "");
     if (!emailValidation.ok) {
       setStatus("error");
@@ -98,8 +97,9 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
     const email = emailValidation.value;
 
     if (TURNSTILE_SITE_KEY && !turnstileToken) {
-      setStatus("error");
-      setFeedback("Please complete the verification challenge.");
+      pendingSubmitRef.current = true;
+      setStatus("idle");
+      setFeedback("");
       return;
     }
 
@@ -109,6 +109,14 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
       setFeedback("This email is already on the waitlist.");
       return;
     }
+
+    const now = Date.now();
+    if (now - lastSubmitAtRef.current < MIN_SUBMIT_INTERVAL_MS) {
+      setStatus("error");
+      setFeedback("Please wait a moment before trying again.");
+      return;
+    }
+    lastSubmitAtRef.current = now;
 
     setStatus("submitting");
     setFeedback("");
@@ -137,6 +145,7 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
       setStatus("error");
       setFeedback(error instanceof Error ? error.message : "Could not join the waitlist. Please try again.");
     } finally {
+      pendingSubmitRef.current = false;
       setTurnstileToken("");
       if (TURNSTILE_SITE_KEY) setWidgetNonce((nonce) => nonce + 1);
     }
@@ -192,7 +201,7 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
           </p>
         </div>
 
-        <form className="waitlist-form" onSubmit={handleSubmit} noValidate>
+        <form ref={formRef} className="waitlist-form" onSubmit={handleSubmit} noValidate>
           <div className="newsletter-form__field">
             <div className="waitlist-form__input-wrap">
               <HiOutlineEnvelope className="waitlist-form__email-icon" aria-hidden="true" />
@@ -225,8 +234,12 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
               key={widgetNonce}
               siteKey={TURNSTILE_SITE_KEY}
               onVerify={setTurnstileToken}
-              onExpire={() => setTurnstileToken("")}
+              onExpire={() => {
+                pendingSubmitRef.current = false;
+                setTurnstileToken("");
+              }}
               onError={() => {
+                pendingSubmitRef.current = false;
                 setTurnstileToken("");
                 setStatus("error");
                 setFeedback("Verification could not load. Check your connection and try again.");
@@ -237,8 +250,7 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
           <button
             className="btn-grad waitlist-form__submit"
             type="submit"
-            disabled={status === "submitting" || verificationPending}
-            aria-busy={verificationPending}
+            disabled={status === "submitting"}
           >
             <span>{status === "submitting" ? "Joining..." : "Join Waitlist"}</span>
           </button>

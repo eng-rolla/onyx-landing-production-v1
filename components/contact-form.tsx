@@ -53,9 +53,16 @@ export function ContactForm() {
   // that blindly populate every field will — and we read the raw DOM value (not
   // React state) so headless form-fillers can't evade it.
   const honeypotRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const pendingSubmitRef = useRef(false);
 
   const captchaRequired = Boolean(TURNSTILE_SITE_KEY);
-  const verificationPending = Boolean(captchaRequired && !turnstileToken);
+
+  useEffect(() => {
+    if (!turnstileToken || !pendingSubmitRef.current) return;
+    pendingSubmitRef.current = false;
+    formRef.current?.requestSubmit();
+  }, [turnstileToken]);
 
   useEffect(() => {
     if (!toastVisible) return;
@@ -96,9 +103,10 @@ export function ContactForm() {
     }
 
     if (captchaRequired && !turnstileToken) {
-      setStatus("error");
+      pendingSubmitRef.current = true;
+      setStatus("idle");
       setFieldErrors({});
-      setFeedback("Please complete the verification challenge.");
+      setFeedback("");
       return;
     }
 
@@ -138,6 +146,7 @@ export function ContactForm() {
       setFeedback(describeApiError(error));
     } finally {
       // Reset the captcha after every attempt — the token can only be used once.
+      pendingSubmitRef.current = false;
       setTurnstileToken("");
       if (captchaRequired) setWidgetNonce((nonce) => nonce + 1);
     }
@@ -169,7 +178,7 @@ export function ContactForm() {
         </div>
       ) : null}
 
-      <form className="contact-form" onSubmit={handleSubmit} noValidate>
+      <form ref={formRef} className="contact-form" onSubmit={handleSubmit} noValidate>
         <div className="contact-form__grid">
           <div className="contact-form__field contact-form__field--full">
             <label htmlFor="contact-full-name">Name</label>
@@ -255,8 +264,12 @@ export function ContactForm() {
             key={widgetNonce}
             siteKey={TURNSTILE_SITE_KEY}
             onVerify={setTurnstileToken}
-            onExpire={() => setTurnstileToken("")}
+            onExpire={() => {
+              pendingSubmitRef.current = false;
+              setTurnstileToken("");
+            }}
             onError={() => {
+              pendingSubmitRef.current = false;
               setTurnstileToken("");
               setStatus("error");
               setFeedback("Verification could not load. Check your connection and try again.");
@@ -267,8 +280,7 @@ export function ContactForm() {
         <button
           className="btn-grad contact-form__submit"
           type="submit"
-          disabled={status === "submitting" || verificationPending}
-          aria-busy={verificationPending}
+          disabled={status === "submitting"}
         >
           {status === "submitting" ? "Sending…" : "Send message"}
         </button>
