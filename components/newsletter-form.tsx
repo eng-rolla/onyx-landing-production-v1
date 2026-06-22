@@ -174,7 +174,7 @@ export function NewsletterForm() {
         ) : null}
 
         <button className="btn-outline" type="submit" disabled={status === "submitting" || verificationPending}>
-          {status === "submitting" ? "Subscribing..." : verificationPending ? "Checking security..." : "Subscribe"}
+          {status === "submitting" ? "Subscribing..." : verificationPending ? "Verifying your browser..." : "Subscribe"}
         </button>
       </form>
     </>

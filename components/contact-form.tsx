@@ -269,7 +269,7 @@ export function ContactForm() {
           type="submit"
           disabled={status === "submitting" || verificationPending}
         >
-          {status === "submitting" ? "Sending…" : verificationPending ? "Checking security..." : "Send message"}
+          {status === "submitting" ? "Sending…" : verificationPending ? "Verifying your browser..." : "Send message"}
         </button>
 
         {status === "error" && feedback ? (

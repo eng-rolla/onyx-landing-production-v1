@@ -239,7 +239,7 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
             type="submit"
             disabled={status === "submitting" || verificationPending}
           >
-            <span>{status === "submitting" ? "Joining..." : verificationPending ? "Checking security..." : "Join Waitlist"}</span>
+            <span>{status === "submitting" ? "Joining..." : verificationPending ? "Verifying your browser..." : "Join Waitlist"}</span>
           </button>
 
           {feedback ? (
