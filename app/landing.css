@@ -4421,6 +4421,10 @@
             overflow-x: clip;
           }
 
+          .landing-page .brand {
+            margin-left: -48px;
+          }
+
           .landing-page .safari-hero-nebula {
             inset: -10svh -16vw;
             transform-origin: 68% 46%;

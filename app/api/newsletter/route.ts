@@ -71,7 +71,7 @@ function renderNewsletterConfirmationEmail() {
 
                       <p style="margin:10px 0 0 0; font-size:13px; line-height:1.8; color:#777777;">
                         For any enquiries, contact us at
-                        <a href="mailto:contact@onyx-quantum.com" style="color:#58a6ff; text-decoration:underline;">contact@onyx-quantum.com</a>
+                        <a href="mailto:newsletter@onyx-quantum.com" style="color:#58a6ff; text-decoration:underline;">newsletter@onyx-quantum.com</a>
                       </p>
                     </td>
                   </tr>
@@ -163,7 +163,7 @@ export async function POST(request: Request) {
       "Rolla Assad",
       "Co-Founder & CEO, Onyx",
       "",
-      "For any enquiries, contact us at contact@onyx-quantum.com",
+      "For any newsletter enquiries, contact us at newsletter@onyx-quantum.com",
     ].join("\n"),
     html: renderNewsletterConfirmationEmail(),
   });

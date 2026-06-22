@@ -1,5 +1,5 @@
 export const MAX_EMAIL_LENGTH = 254;
-export const MIN_NAME_LENGTH = 5;
+export const MIN_NAME_LENGTH = 2;
 export const MAX_NAME_LENGTH = 160;
 export const MIN_MESSAGE_LENGTH = 10;
 export const MAX_MESSAGE_LENGTH = 4000;
