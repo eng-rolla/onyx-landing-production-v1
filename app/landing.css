@@ -3494,6 +3494,7 @@
           position: absolute;
           top: .85rem;
           right: .85rem;
+          z-index: 4;
           width: 30px;
           height: 30px;
           border: 0;
@@ -3505,6 +3506,9 @@
           font-weight: 300;
           line-height: 1;
           cursor: pointer;
+          pointer-events: auto;
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
           display: inline-grid;
           place-items: center;
           transition: background .18s ease, box-shadow .18s ease, color .18s ease;
@@ -3514,6 +3518,10 @@
           background: rgba(148, 163, 184, .16);
           box-shadow: 0 0 0 1px rgba(255,255,255,.05), 0 6px 18px rgba(15, 23, 42, .24);
           color: rgba(255, 255, 255, .92);
+        }
+
+        .landing-page .waitlist-modal__close > span {
+          pointer-events: none;
         }
 
         .landing-page .waitlist-modal__copy {

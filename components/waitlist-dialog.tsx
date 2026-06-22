@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type PointerEvent } from "react";
 import { HiOutlineEnvelope } from "react-icons/hi2";
 
 import { MAX_EMAIL_LENGTH, validateEmail } from "@/lib/form-security";
@@ -131,18 +131,33 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
     }
   }
 
+  function handleBackdropPointerDown(event: PointerEvent<HTMLDivElement>) {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  }
+
   return (
-    <div className="waitlist-modal" role="presentation" onMouseDown={onClose} onKeyDown={handleDialogKeyDown}>
+    <div
+      className="waitlist-modal"
+      role="presentation"
+      onPointerDown={handleBackdropPointerDown}
+      onKeyDown={handleDialogKeyDown}
+    >
       <div
         ref={dialogRef}
         className="waitlist-modal__dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="waitlist-modal-title"
-        onMouseDown={(event) => event.stopPropagation()}
       >
-        <button className="waitlist-modal__close" type="button" onClick={onClose} aria-label="Close waitlist dialog">
-          ×
+        <button
+          className="waitlist-modal__close"
+          type="button"
+          onClick={onClose}
+          aria-label="Close waitlist dialog"
+        >
+          <span aria-hidden="true">×</span>
         </button>
 
         <div className="waitlist-modal__copy">
