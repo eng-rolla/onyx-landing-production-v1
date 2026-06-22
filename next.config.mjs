@@ -2,6 +2,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = dirname(fileURLToPath(import.meta.url));
+const developmentScriptPolicy = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
 
 const securityHeaders = [
   {
@@ -12,7 +13,7 @@ const securityHeaders = [
       "object-src 'none'",
       "frame-ancestors 'none'",
       "form-action 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
+      `script-src 'self' 'unsafe-inline'${developmentScriptPolicy} https://challenges.cloudflare.com`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob:",
       "font-src 'self' data: https://fonts.gstatic.com",
@@ -21,6 +22,10 @@ const securityHeaders = [
       "worker-src 'self' blob:",
       "upgrade-insecure-requests",
     ].join("; "),
+  },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=31536000; includeSubDomains",
   },
   {
     key: "Referrer-Policy",

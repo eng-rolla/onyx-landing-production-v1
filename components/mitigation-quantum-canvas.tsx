@@ -77,11 +77,19 @@ export function MitigationQuantumCanvas({ className, activeLayer = 0 }: Mitigati
     const camera = new THREE.PerspectiveCamera(44, 1, 0.1, 100);
     camera.position.set(0, 0, 5.2);
 
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: "high-performance",
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        powerPreference: "high-performance",
+      });
+    } catch {
+      mount.dataset.webglUnavailable = "true";
+      return () => {
+        delete mount.dataset.webglUnavailable;
+      };
+    }
     renderer.setPixelRatio(profile.pixelRatio);
     renderer.setClearColor(0x000000, 0);
     mount.appendChild(renderer.domElement);

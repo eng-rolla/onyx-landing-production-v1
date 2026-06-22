@@ -16,6 +16,11 @@ function readString(payload: Record<string, unknown>, key: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const contentLength = Number(request.headers.get("content-length") ?? 0);
+  if (contentLength > 16_384) {
+    return NextResponse.json({ detail: "Request is too large." }, { status: 413 });
+  }
+
   const payload = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!payload) {
     return NextResponse.json({ detail: "We could not read the form. Please refresh and try again." }, { status: 400 });

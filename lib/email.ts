@@ -27,7 +27,12 @@ export function isValidEmail(value: string) {
 
 export async function verifyTurnstile(token: string, remoteIp?: string): Promise<ServiceResult> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) return { ok: true };
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      return { ok: false, reason: "Security verification is temporarily unavailable." };
+    }
+    return { ok: true };
+  }
   if (!token) return { ok: false, reason: "Please complete the verification challenge." };
 
   const formData = new FormData();

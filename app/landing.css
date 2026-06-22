@@ -3077,7 +3077,7 @@
         }
 
         .landing-page .contact-form__turnstile {
-          min-height: 65px;
+          min-height: 0;
         }
 
         /* Honeypot: kept in the DOM (so bots fill it) but removed from view
@@ -3495,8 +3495,8 @@
           top: .85rem;
           right: .85rem;
           z-index: 4;
-          width: 30px;
-          height: 30px;
+          width: 44px;
+          height: 44px;
           border: 0;
           border-radius: 7px;
           color: #fff;
@@ -4424,6 +4424,8 @@
           .landing-page #scene {
             width: 100vw;
             max-width: 100vw;
+            height: 100svh;
+            bottom: auto;
             overflow: hidden;
           }
 

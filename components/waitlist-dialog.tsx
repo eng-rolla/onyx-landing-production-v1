@@ -4,11 +4,13 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type P
 import { HiOutlineEnvelope } from "react-icons/hi2";
 
 import { MAX_EMAIL_LENGTH, validateEmail } from "@/lib/form-security";
+import { TurnstileWidget } from "./turnstile-widget";
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
 const STORAGE_KEY = "onyx_waitlist_email_hashes";
 const MIN_SUBMIT_INTERVAL_MS = 1800;
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 function extractApiMessage(payload: unknown) {
   if (!payload || typeof payload !== "object") return "";
@@ -53,6 +55,8 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
   const lastSubmitAtRef = useRef(0);
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [feedback, setFeedback] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [widgetNonce, setWidgetNonce] = useState(0);
 
   useEffect(() => {
     if (!open) return;
@@ -61,6 +65,8 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
     document.body.style.overflow = "hidden";
     setStatus("idle");
     setFeedback("");
+    setTurnstileToken("");
+    setWidgetNonce((nonce) => nonce + 1);
     window.setTimeout(() => emailRef.current?.focus(), 40);
 
     return () => {
@@ -90,6 +96,12 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
     }
     const email = emailValidation.value;
 
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setStatus("error");
+      setFeedback("Please complete the verification challenge.");
+      return;
+    }
+
     const emailHash = await sha256(email);
     if (readStoredHashes().includes(emailHash)) {
       setStatus("error");
@@ -106,6 +118,7 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          turnstile_token: turnstileToken,
           website: honeypotRef.current?.value ?? "",
         }),
       });
@@ -122,6 +135,9 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
     } catch (error) {
       setStatus("error");
       setFeedback(error instanceof Error ? error.message : "Could not join the waitlist. Please try again.");
+    } finally {
+      setTurnstileToken("");
+      if (TURNSTILE_SITE_KEY) setWidgetNonce((nonce) => nonce + 1);
     }
   }
 
@@ -135,6 +151,12 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
     if (event.target === event.currentTarget) {
       onClose();
     }
+  }
+
+  function handleClosePointerDown(event: PointerEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    onClose();
   }
 
   return (
@@ -154,7 +176,7 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
         <button
           className="waitlist-modal__close"
           type="button"
-          onClick={onClose}
+          onPointerDown={handleClosePointerDown}
           aria-label="Close waitlist dialog"
         >
           <span aria-hidden="true">×</span>
@@ -196,6 +218,16 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
             <label htmlFor="waitlist-website">Website</label>
             <input id="waitlist-website" name="website" type="text" tabIndex={-1} autoComplete="off" ref={honeypotRef} />
           </div>
+
+          {TURNSTILE_SITE_KEY ? (
+            <TurnstileWidget
+              key={widgetNonce}
+              siteKey={TURNSTILE_SITE_KEY}
+              onVerify={setTurnstileToken}
+              onExpire={() => setTurnstileToken("")}
+              onError={() => setTurnstileToken("")}
+            />
+          ) : null}
 
           <button className="btn-grad waitlist-form__submit" type="submit" disabled={status === "submitting"}>
             <span>{status === "submitting" ? "Joining..." : "Join Waitlist"}</span>

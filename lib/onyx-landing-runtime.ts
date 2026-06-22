@@ -183,7 +183,12 @@ export function mountOnyxLanding() {
     return 1;
   };
 
-  const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 4000);
+  const getSceneViewportWidth = () => Math.max(sceneMount.clientWidth || window.innerWidth, 1);
+  const getSceneViewportHeight = () => Math.max(sceneMount.clientHeight || window.innerHeight, 1);
+  const initialViewportWidth = getSceneViewportWidth();
+  const initialViewportHeight = getSceneViewportHeight();
+
+  const camera = new THREE.PerspectiveCamera(75, initialViewportWidth / initialViewportHeight, 0.1, 4000);
   camera.position.z = 4;
 
   const renderer = new THREE.WebGLRenderer({
@@ -192,14 +197,14 @@ export function mountOnyxLanding() {
     powerPreference: "high-performance",
   });
   renderer.setPixelRatio(getRendererPixelRatio());
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(initialViewportWidth, initialViewportHeight);
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   sceneMount.appendChild(renderer.domElement);
 
   const composer = new EffectComposer(renderer);
   const renderPass = new RenderPass(scene, camera);
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.05, 0.55, 0.5);
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(initialViewportWidth, initialViewportHeight), 1.05, 0.55, 0.5);
   composer.addPass(renderPass);
   composer.addPass(bloomPass);
 
@@ -551,7 +556,10 @@ export function mountOnyxLanding() {
   corePts.visible = false;
   scene.add(shieldPts, corePts);
 
-  const getScrollMax = () => Math.max((narrativeSpacer?.offsetHeight || innerHeight) - innerHeight, 1);
+  const getScrollMax = () => {
+    const viewportHeight = getSceneViewportHeight();
+    return Math.max((narrativeSpacer?.offsetHeight || viewportHeight) - viewportHeight, 1);
+  };
   let sTarget = 0;
   let s = 0;
   let lastScrollAt = performance.now();
@@ -571,7 +579,7 @@ export function mountOnyxLanding() {
   const sectionViewportPresence = (element) => {
     if (!element) return 0;
     const rect = element.getBoundingClientRect();
-    const viewportHeight = window.innerHeight || 1;
+    const viewportHeight = getSceneViewportHeight();
     const enter = clamp01((viewportHeight * 0.95 - rect.top) / (viewportHeight * 0.25));
     const exit = clamp01((rect.bottom - viewportHeight * 0.05) / (viewportHeight * 0.25));
     return enter * exit;
@@ -585,21 +593,22 @@ export function mountOnyxLanding() {
     const scrollMax = getScrollMax();
     sTarget = Math.min(Math.max(currentY / scrollMax, 0), 1);
     lastScrollAt = now;
+    const viewportHeight = getSceneViewportHeight();
     if (faqSection) {
       const faqRect = faqSection.getBoundingClientRect();
-      faqBackdropTarget = clamp01((window.innerHeight * 0.84 - faqRect.top) / (window.innerHeight * 0.34));
+      faqBackdropTarget = clamp01((viewportHeight * 0.84 - faqRect.top) / (viewportHeight * 0.34));
     }
     if (faqSection && contactSection) {
-      const motionStart = faqSection.offsetTop - window.innerHeight * 0.18;
-      const motionEnd = contactSection.offsetTop - window.innerHeight * 0.44;
+      const motionStart = faqSection.offsetTop - viewportHeight * 0.18;
+      const motionEnd = contactSection.offsetTop - viewportHeight * 0.44;
       postFaqMotionTarget = clamp01((currentY - motionStart) / Math.max(motionEnd - motionStart, 1));
     } else {
       postFaqMotionTarget = faqBackdropTarget;
     }
     if (readinessSection) {
       const readinessRect = readinessSection.getBoundingClientRect();
-      const enterProgress = clamp01((window.innerHeight * 0.9 - readinessRect.top) / (window.innerHeight * 0.44));
-      const exitProgress = clamp01((readinessRect.bottom - window.innerHeight * 0.1) / Math.max(readinessRect.height * 0.8, 1));
+      const enterProgress = clamp01((viewportHeight * 0.9 - readinessRect.top) / (viewportHeight * 0.44));
+      const exitProgress = clamp01((readinessRect.bottom - viewportHeight * 0.1) / Math.max(readinessRect.height * 0.8, 1));
       readinessSplitTarget = enterProgress * exitProgress;
     } else {
       readinessSplitTarget = 0;
@@ -933,8 +942,8 @@ export function mountOnyxLanding() {
   let resizeFrame = 0;
 
   const applyResize = () => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const width = getSceneViewportWidth();
+    const height = getSceneViewportHeight();
     const pixelRatio = getRendererPixelRatio();
     if (width === lastRenderWidth && height === lastRenderHeight && pixelRatio === lastPixelRatio) {
       syncFeatureRailPosition();

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { validateEmailDeliverability } from "@/lib/email-deliverability";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, verifyTurnstile } from "@/lib/email";
 import { validateEmail } from "@/lib/form-security";
 import { addNewsletterEmail, hasNewsletterEmail } from "@/lib/newsletter-store";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -87,6 +87,11 @@ function renderNewsletterConfirmationEmail() {
 }
 
 export async function POST(request: Request) {
+  const contentLength = Number(request.headers.get("content-length") ?? 0);
+  if (contentLength > 16_384) {
+    return NextResponse.json({ detail: "Request is too large." }, { status: 413 });
+  }
+
   const payload = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!payload) {
     return NextResponse.json({ detail: "We could not read the form. Please refresh and try again." }, { status: 400 });
@@ -118,6 +123,13 @@ export async function POST(request: Request) {
   const deliverability = await validateEmailDeliverability(email);
   if (!deliverability.ok) {
     return NextResponse.json({ email: deliverability.message }, { status: 400 });
+  }
+
+  const turnstileToken = readString(payload, "turnstile_token");
+  const remoteIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const verification = await verifyTurnstile(turnstileToken, remoteIp);
+  if (!verification.ok) {
+    return NextResponse.json({ detail: verification.reason }, { status: 400 });
   }
 
   if (await hasNewsletterEmail(email)) {

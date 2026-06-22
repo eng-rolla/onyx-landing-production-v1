@@ -3,8 +3,11 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { MAX_EMAIL_LENGTH, validateEmail } from "@/lib/form-security";
+import { TurnstileWidget } from "./turnstile-widget";
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 function extractApiMessage(payload: unknown) {
   if (!payload || typeof payload !== "object") return "";
@@ -24,6 +27,8 @@ export function NewsletterForm() {
   const [feedback, setFeedback] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
   const [toastLeaving, setToastLeaving] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [widgetNonce, setWidgetNonce] = useState(0);
   const emailRef = useRef<HTMLInputElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
 
@@ -54,6 +59,12 @@ export function NewsletterForm() {
     }
     const email = emailValidation.value;
 
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setStatus("error");
+      setFeedback("Please complete the verification challenge.");
+      return;
+    }
+
     setStatus("submitting");
     setFeedback("");
 
@@ -63,6 +74,7 @@ export function NewsletterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          turnstile_token: turnstileToken,
           website: honeypotRef.current?.value ?? "",
         }),
       });
@@ -82,6 +94,9 @@ export function NewsletterForm() {
     } catch (error) {
       setStatus("error");
       setFeedback(error instanceof Error ? error.message : "Could not subscribe. Please try again.");
+    } finally {
+      setTurnstileToken("");
+      if (TURNSTILE_SITE_KEY) setWidgetNonce((nonce) => nonce + 1);
     }
   }
 
@@ -142,6 +157,16 @@ export function NewsletterForm() {
           <label htmlFor="newsletter-website">Website</label>
           <input id="newsletter-website" name="website" type="text" tabIndex={-1} autoComplete="off" ref={honeypotRef} />
         </div>
+
+        {TURNSTILE_SITE_KEY ? (
+          <TurnstileWidget
+            key={widgetNonce}
+            siteKey={TURNSTILE_SITE_KEY}
+            onVerify={setTurnstileToken}
+            onExpire={() => setTurnstileToken("")}
+            onError={() => setTurnstileToken("")}
+          />
+        ) : null}
 
         <button className="btn-outline" type="submit" disabled={status === "submitting"}>
           {status === "submitting" ? "Subscribing..." : "Subscribe"}

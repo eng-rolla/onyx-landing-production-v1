@@ -8,6 +8,7 @@ type TurnstileOptions = {
   "error-callback"?: () => void;
   "expired-callback"?: () => void;
   theme?: "auto" | "light" | "dark";
+  appearance?: "always" | "execute" | "interaction-only";
 };
 
 type TurnstileApi = {
@@ -70,6 +71,7 @@ export function TurnstileWidget({
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           theme: "dark",
+          appearance: "interaction-only",
           callback: (token) => onVerify(token),
           "expired-callback": () => onExpire?.(),
           "error-callback": () => onError?.(),
