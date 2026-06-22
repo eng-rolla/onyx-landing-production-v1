@@ -3077,7 +3077,10 @@
         }
 
         .landing-page .contact-form__turnstile {
-          min-height: 0;
+          width: 100%;
+          min-height: 65px;
+          display: grid;
+          place-items: center;
         }
 
         /* Honeypot: kept in the DOM (so bots fill it) but removed from view
