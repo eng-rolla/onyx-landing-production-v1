@@ -210,7 +210,7 @@ export default function LandingPage() {
     {
       question: "Why Onyx?",
       answer:
-        "Onyx connects awareness, assessment, and mitigation in one platform so users can understand quantum-era cyber risks, measure their current posture, and move toward a practical resilience roadmap.",
+        "Google warns that quantum threats may arrive sooner than expected by 2029, while NIST has pushed organizations to begin urgent migration toward Post-Quantum Cryptography with milestones around 2030 and 2035. Hence, quantum security is no longer just a prediction, but a migration challenge that must be addressed now. There are a few platforms that clearly address this issue. That is why Onyx connects awareness, assessment, and mitigation in one platform for both individuals and organizations to be ready for the quantum era.",
     },
        {
       question: "If quantum computers are not here yet, why should I care now?",

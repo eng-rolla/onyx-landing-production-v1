@@ -4564,3 +4564,10 @@
             justify-content: center;
           }
         }
+
+        @media (min-width: 641px) and (max-width: 1080px) {
+          .landing-page .mitigation-quantum,
+          .landing-page .feature-mitigation-hud__wire {
+            display: none;
+          }
+        }
