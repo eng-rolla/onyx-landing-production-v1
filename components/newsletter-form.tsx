@@ -31,6 +31,7 @@ export function NewsletterForm() {
   const [widgetNonce, setWidgetNonce] = useState(0);
   const emailRef = useRef<HTMLInputElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
+  const verificationPending = Boolean(TURNSTILE_SITE_KEY && !turnstileToken);
 
   useEffect(() => {
     if (!toastVisible) return;
@@ -164,12 +165,16 @@ export function NewsletterForm() {
             siteKey={TURNSTILE_SITE_KEY}
             onVerify={setTurnstileToken}
             onExpire={() => setTurnstileToken("")}
-            onError={() => setTurnstileToken("")}
+            onError={() => {
+              setTurnstileToken("");
+              setStatus("error");
+              setFeedback("Verification could not load. Check your connection and try again.");
+            }}
           />
         ) : null}
 
-        <button className="btn-outline" type="submit" disabled={status === "submitting"}>
-          {status === "submitting" ? "Subscribing..." : "Subscribe"}
+        <button className="btn-outline" type="submit" disabled={status === "submitting" || verificationPending}>
+          {status === "submitting" ? "Subscribing..." : verificationPending ? "Checking security..." : "Subscribe"}
         </button>
       </form>
     </>

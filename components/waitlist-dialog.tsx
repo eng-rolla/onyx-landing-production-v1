@@ -57,6 +57,7 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
   const [feedback, setFeedback] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [widgetNonce, setWidgetNonce] = useState(0);
+  const verificationPending = Boolean(TURNSTILE_SITE_KEY && !turnstileToken);
 
   useEffect(() => {
     if (!open) return;
@@ -225,12 +226,20 @@ export function WaitlistDialog({ open, onClose }: { open: boolean; onClose: () =
               siteKey={TURNSTILE_SITE_KEY}
               onVerify={setTurnstileToken}
               onExpire={() => setTurnstileToken("")}
-              onError={() => setTurnstileToken("")}
+              onError={() => {
+                setTurnstileToken("");
+                setStatus("error");
+                setFeedback("Verification could not load. Check your connection and try again.");
+              }}
             />
           ) : null}
 
-          <button className="btn-grad waitlist-form__submit" type="submit" disabled={status === "submitting"}>
-            <span>{status === "submitting" ? "Joining..." : "Join Waitlist"}</span>
+          <button
+            className="btn-grad waitlist-form__submit"
+            type="submit"
+            disabled={status === "submitting" || verificationPending}
+          >
+            <span>{status === "submitting" ? "Joining..." : verificationPending ? "Checking security..." : "Join Waitlist"}</span>
           </button>
 
           {feedback ? (

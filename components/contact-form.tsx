@@ -55,6 +55,7 @@ export function ContactForm() {
   const honeypotRef = useRef<HTMLInputElement>(null);
 
   const captchaRequired = Boolean(TURNSTILE_SITE_KEY);
+  const verificationPending = Boolean(captchaRequired && !turnstileToken);
 
   useEffect(() => {
     if (!toastVisible) return;
@@ -255,12 +256,20 @@ export function ContactForm() {
             siteKey={TURNSTILE_SITE_KEY}
             onVerify={setTurnstileToken}
             onExpire={() => setTurnstileToken("")}
-            onError={() => setTurnstileToken("")}
+            onError={() => {
+              setTurnstileToken("");
+              setStatus("error");
+              setFeedback("Verification could not load. Check your connection and try again.");
+            }}
           />
         ) : null}
 
-        <button className="btn-grad contact-form__submit" type="submit" disabled={status === "submitting"}>
-          {status === "submitting" ? "Sending…" : "Send message"}
+        <button
+          className="btn-grad contact-form__submit"
+          type="submit"
+          disabled={status === "submitting" || verificationPending}
+        >
+          {status === "submitting" ? "Sending…" : verificationPending ? "Checking security..." : "Send message"}
         </button>
 
         {status === "error" && feedback ? (
