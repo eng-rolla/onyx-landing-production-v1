@@ -148,6 +148,9 @@ export function mountOnyxLanding() {
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x000000, 0.012);
+  // On tablet/mobile, keep the nebula + starfield but drop the central sphere
+  // particle systems (the morphing "field" sphere and the "attack" burst).
+  const hideCoreParticles = window.innerWidth <= 1080;
   const isSafari =
     typeof navigator !== "undefined" &&
     /Safari/i.test(navigator.userAgent) &&
@@ -486,7 +489,8 @@ export function mountOnyxLanding() {
     depthWrite: false,
     blending: THREE.AdditiveBlending,
   }));
-  scene.add(field);
+  field.visible = false;
+  if (!hideCoreParticles) scene.add(field);
 
   const ATT = Math.round(1200 * renderScale);
   const atkGeo = new THREE.BufferGeometry();
@@ -525,7 +529,8 @@ export function mountOnyxLanding() {
     depthWrite: false,
     blending: THREE.AdditiveBlending,
   }));
-  scene.add(attack);
+  attack.visible = false;
+  if (!hideCoreParticles) scene.add(attack);
 
   const SH = Math.round(2500 * renderScale);
   const CR = Math.round(1600 * renderScale);
@@ -680,7 +685,11 @@ export function mountOnyxLanding() {
 
     const deltaScroll = sTarget - s;
     const scrollIdle = performance.now() - lastScrollAt > 70;
-    if (window.innerWidth <= 900 || scrollIdle || Math.abs(deltaScroll) < 0.00035) {
+    if (window.innerWidth <= 1080) {
+      // Mobile/tablet: lock the intro to its settled "what happens" frame
+      // (centered camera + nebula) so it never shifts from a first frame.
+      s = 1;
+    } else if (scrollIdle || Math.abs(deltaScroll) < 0.00035) {
       s = sTarget;
     } else {
       const catchup = Math.min(0.42, 0.14 + Math.abs(deltaScroll) * 2.4);
@@ -785,7 +794,7 @@ export function mountOnyxLanding() {
     const mobileParticleScale = getMobileParticleScale();
     field.material.size = 0.035 * mobileParticleScale;
     attack.material.size = 0.038 * Math.max(0.9, mobileParticleScale);
-    if (act1Opacity > 0.002) {
+    if (!hideCoreParticles && act1Opacity > 0.002) {
       field.visible = true;
       const amp = 0.14 * (1 - morph) * animationIntensity;
       const spread = 2.6;
@@ -875,7 +884,7 @@ export function mountOnyxLanding() {
 
     const atkPosAttr = atkGeo.attributes.position;
     const atkColAttr = atkGeo.attributes.color;
-    if (act1Opacity <= 0.002 || (!matrixReady && travel === 0 && impact === 0 && depart === 0)) {
+    if (hideCoreParticles || act1Opacity <= 0.002 || (!matrixReady && travel === 0 && impact === 0 && depart === 0)) {
       attack.visible = false;
     } else {
       attack.visible = true;

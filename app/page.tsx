@@ -300,6 +300,7 @@ export default function LandingPage() {
   useEffect(() => {
     let cancelled = false;
     let landingCleanup: null | (() => void) = null;
+    const reducedHeroMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const resetSceneMount = () => {
       const sceneMount = document.getElementById("scene");
@@ -311,6 +312,7 @@ export default function LandingPage() {
     const mountLanding = async () => {
       setSceneReady(true);
       resetSceneMount();
+      if (reducedHeroMotion) return;
       try {
         const landingRuntime = (await import("@/lib/onyx-landing-runtime")) as LandingRuntimeModule;
         if (cancelled) return;

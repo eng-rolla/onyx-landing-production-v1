@@ -176,6 +176,7 @@
         .landing-page .text-left h2 { margin: 0; font-family: var(--font-landing); font-size: 1.45rem; letter-spacing: .12em; text-transform: uppercase; color: #ffffffcc; font-weight: 500; }
         .landing-page .text-left h1 { margin: .2rem 0 0; font-family: var(--font-landing); font-size: 3.6rem; color: #fff; line-height: 1.03; letter-spacing: -.05em; font-weight: 600; text-shadow: 0 0 25px rgba(0,232,255,.35); }
         .landing-page .text-left p { font-family: var(--font-landing); font-size: 1.1rem; color: #ffffd9; line-height: 1.6; margin-top: .7rem; max-width: 520px; }
+        .landing-page #heroText h2 { font-family: var(--font-landing); color: #9aa3ad; }
         .landing-page .text-left button { margin-top: 1.4rem; padding: .85rem 2rem; border: 2px solid #00e8ff; background: transparent; color: #00e8ff; font-family: var(--font-landing); letter-spacing: .02em; font-weight: 600; border-radius: 30px; cursor: pointer; transition: .25s; }
         .landing-page .text-left button:hover { background: #00e8ff; color: #000; box-shadow: 0 0 15px #00e8ff, 0 0 30px #00e8ff; }
 
@@ -4569,4 +4570,154 @@
           .landing-page .feature-mitigation-hud__wire {
             display: none;
           }
+          .landing-page #heroText p {
+            max-width: none;
+          }
+        }
+
+        @media (max-width: 1080px) {
+          .landing-page .safari-hero-nebula {
+            display: none !important;
+          }
+
+          .landing-page .scroll-space {
+            min-height: auto;
+            padding-top: clamp(8.5rem, 16vh, 11rem);
+          }
+
+          .landing-page .landing-narrative-spacer {
+            display: none !important;
+          }
+
+          .landing-page .text-left,
+          .landing-page .text-center,
+          .landing-page #matrixText,
+          .landing-page #preventText {
+            position: relative;
+            inset: auto;
+            left: auto;
+            right: auto;
+            top: auto;
+            width: min(720px, 88vw);
+            max-width: min(720px, 88vw);
+            margin-inline: auto;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            transform: none !important;
+            text-align: center;
+            will-change: auto;
+          }
+
+          .landing-page #heroText {
+            min-height: clamp(470px, 68vh, 620px);
+            display: grid;
+            align-content: center;
+            justify-items: center;
+          }
+
+          .landing-page #heroText h2 {
+            font-size: clamp(1.7rem, 5.5vw, 2.1rem);
+            background: none;
+            -webkit-background-clip: border-box;
+            background-clip: border-box;
+            -webkit-text-fill-color: #00e8ff;
+            color: #00e8ff;
+          }
+
+          .landing-page .text-left h1 {
+            max-width: 14ch;
+            margin-inline: auto;
+            text-align: center;
+          }
+
+          .landing-page #heroText h1 {
+            font-size: clamp(2rem, 8.4vw, 2.8rem);
+          }
+
+          .landing-page .text-left p {
+            max-width: 21rem;
+            margin-inline: auto;
+            text-align: center;
+          }
+
+          .landing-page #matrixText {
+            display: grid;
+            padding: clamp(3.5rem, 9vh, 6rem) 0 clamp(2rem, 5vh, 3.5rem);
+            align-content: center;
+            justify-items: center;
+          }
+
+          .landing-page #matrixText h1 {
+            max-width: 13ch;
+            margin-inline: auto;
+          }
+
+          .landing-page #matrixText p {
+            max-width: 34rem;
+            color: #ffffd9;
+          }
+
+          .landing-page #breachText,
+          .landing-page #finalText {
+            display: none !important;
+          }
+
+          .landing-page #preventText {
+            display: grid;
+            padding: clamp(2.5rem, 7vh, 5rem) 0 1.25rem;
+            align-content: center;
+            justify-items: center;
+          }
+
+          .landing-page #preventText h2 {
+            display: none;
+          }
+
+          .landing-page #preventText h1 {
+            max-width: 13ch;
+            margin-inline: auto;
+            text-align: center;
+          }
+
+          .landing-page .services {
+            position: relative;
+            left: auto;
+            top: auto;
+            width: min(720px, 88vw);
+            margin: 1rem auto 0;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            transform: none !important;
+            transition: none;
+          }
+
+          .landing-page .service-card {
+            --p: 1;
+            min-height: clamp(8.25rem, 18vw, 9.75rem);
+            padding: clamp(1.45rem, 3.5vw, 1.9rem) clamp(1.1rem, 3vw, 1.45rem);
+            background: rgba(5, 7, 14, .76);
+            border-color: rgba(168, 85, 247, .72);
+            box-shadow: none;
+            text-align: center;
+            opacity: 1;
+            transform: none;
+            will-change: auto;
+          }
+
+          .landing-page .service-card p {
+            color: rgba(255, 255, 255, .96);
+            font-size: clamp(.98rem, 2.5vw, 1.12rem);
+            line-height: 1.48;
+          }
+
+          .landing-page .landing-sections {
+            position: relative;
+            padding-top: clamp(4rem, 8vh, 6rem);
+            isolation: isolate;
+          }
+
         }
