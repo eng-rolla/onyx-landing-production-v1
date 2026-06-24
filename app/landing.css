@@ -2560,7 +2560,7 @@
           display: grid;
           gap: .85rem;
           padding-top: 1.25rem;
-          min-height: 236px;
+          min-height: 15.25rem;
           align-content: start;
           animation: mitigationHudSlideIn .45s ease both;
         }
@@ -4275,7 +4275,7 @@
           .landing-page .feature-mitigation-hud__body {
             /* Fixed height just tall enough to fit the longest slide (03) so
                the panel square stays equal across slides with a minimal gap. */
-            min-height: 18rem;
+            min-height: 17.75rem;
           }
 
           /* The sphere and the connector wire are removed on mobile. */
