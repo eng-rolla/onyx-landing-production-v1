@@ -154,10 +154,36 @@ export function mountOnyxLanding() {
     /Apple/i.test(navigator.vendor) &&
     !/CriOS|Chrome|Chromium|EdgiOS|FxiOS|OPiOS/i.test(navigator.userAgent);
 
-  const animationIntensity = 1;
-  const animationSpeed = 1;
-  const renderScale = 1;
-  const getRendererPixelRatio = () => Math.min(window.devicePixelRatio || 1, 2);
+  const getMotionProfile = () => {
+    const width = window.innerWidth;
+    if (width <= 640) {
+      return {
+        animationIntensity: 0.72,
+        animationSpeed: 0.82,
+        renderScale: 0.52,
+        maxPixelRatio: 1.25,
+      };
+    }
+    if (width <= 900) {
+      return {
+        animationIntensity: 0.84,
+        animationSpeed: 0.9,
+        renderScale: 0.68,
+        maxPixelRatio: 1.5,
+      };
+    }
+    return {
+      animationIntensity: 1,
+      animationSpeed: 1,
+      renderScale: 1,
+      maxPixelRatio: 1.75,
+    };
+  };
+  const motionProfile = getMotionProfile();
+  const animationIntensity = motionProfile.animationIntensity;
+  const animationSpeed = motionProfile.animationSpeed;
+  const renderScale = motionProfile.renderScale;
+  const getRendererPixelRatio = () => Math.min(window.devicePixelRatio || 1, motionProfile.maxPixelRatio);
   const getMobileCameraPullback = () => {
     const width = window.innerWidth;
     if (width <= 640) return 1.58;
@@ -208,11 +234,16 @@ export function mountOnyxLanding() {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   sceneMount.appendChild(renderer.domElement);
 
-  const composer = new EffectComposer(renderer);
-  const renderPass = new RenderPass(scene, camera);
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(initialViewportWidth, initialViewportHeight), 1.05, 0.55, 0.5);
-  composer.addPass(renderPass);
-  composer.addPass(bloomPass);
+  const useDesktopBloom = window.innerWidth > 900;
+  const composer = useDesktopBloom ? new EffectComposer(renderer) : null;
+  const renderPass = useDesktopBloom ? new RenderPass(scene, camera) : null;
+  const bloomPass = useDesktopBloom
+    ? new UnrealBloomPass(new THREE.Vector2(initialViewportWidth, initialViewportHeight), 1.05, 0.55, 0.5)
+    : null;
+  if (composer && renderPass && bloomPass) {
+    composer.addPass(renderPass);
+    composer.addPass(bloomPass);
+  }
 
   /*
    * Dev performance notes:
@@ -728,6 +759,7 @@ export function mountOnyxLanding() {
     const nebShift = smooth(seg(s, 0.72, 0.9));
     const nebWeight = Math.max(nebShift, camBlend * 0.85);
     const readinessNebulaFade = smooth(readinessSplit);
+    const desktopHeroNebula = window.innerWidth > 900 ? Math.max(0, 1 - smooth(seg(s, 0.22, 0.56))) : 0;
     nebulas.forEach(({ sp, basePos, baseScale, targetPos, targetScale }, idx) => {
       sp.position.x = lerp(basePos.x, targetPos.x, nebWeight);
       sp.position.y = lerp(basePos.y, targetPos.y, nebWeight);
@@ -739,7 +771,10 @@ export function mountOnyxLanding() {
       const nebulaFadeStrength = idx === 2 ? 1.85 : 1.42;
       const faqFade = nebulaBaseOpacities[idx] * Math.max(0, 1 - faqBackdrop * nebulaFadeStrength);
       const readinessFadeStrength = idx === 2 ? 0.88 : 0.18;
-      sp.material.opacity = faqFade * Math.max(0, 1 - readinessNebulaFade * readinessFadeStrength) * Math.max(0, 1 - featureNebulaSuppress);
+      const animatedOpacity =
+        faqFade * Math.max(0, 1 - readinessNebulaFade * readinessFadeStrength) * Math.max(0, 1 - featureNebulaSuppress);
+      const desktopHeroOpacity = nebulaBaseOpacities[idx] * desktopHeroNebula;
+      sp.material.opacity = Math.max(animatedOpacity, desktopHeroOpacity);
       const wob = 0.0015 + nebWeight * 0.0015;
       sp.position.x += Math.sin((tNeb + idx) * 0.6) * wob;
       sp.position.y += Math.cos((tNeb + idx) * 0.5) * wob;
@@ -938,15 +973,18 @@ export function mountOnyxLanding() {
       el.style.setProperty("--p", e.toFixed(3));
     });
 
-    composer.render();
+    if (composer) {
+      composer.render();
+    } else {
+      renderer.render(scene, camera);
+    }
   }
-
-  animate();
 
   let lastRenderWidth = 0;
   let lastRenderHeight = 0;
   let lastPixelRatio = 0;
   let resizeFrame = 0;
+  let pageVisible = !document.hidden;
 
   const applyResize = () => {
     const width = getSceneViewportWidth();
@@ -963,7 +1001,7 @@ export function mountOnyxLanding() {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
-    composer.setSize(width, height);
+    composer?.setSize(width, height);
     syncFeatureRailPosition();
   };
 
@@ -977,6 +1015,30 @@ export function mountOnyxLanding() {
 
   applyResize();
   window.addEventListener("resize", onResize);
+
+  const startAnimation = () => {
+    if (animationFrameId || cleanedUp || !pageVisible) return;
+    animationFrameId = requestAnimationFrame(animate);
+  };
+
+  const stopAnimation = () => {
+    if (!animationFrameId) return;
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = 0;
+  };
+
+  const handleVisibilityChange = () => {
+    pageVisible = !document.hidden;
+    if (pageVisible) {
+      clock.getDelta();
+      startAnimation();
+    } else {
+      stopAnimation();
+    }
+  };
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  startAnimation();
 
   const disposeMaterial = (material) => {
     const materials = Array.isArray(material) ? material : [material];
@@ -993,7 +1055,7 @@ export function mountOnyxLanding() {
     if (cleanedUp) return;
     cleanedUp = true;
 
-    cancelAnimationFrame(animationFrameId);
+    stopAnimation();
     if (resizeFrame) {
       cancelAnimationFrame(resizeFrame);
       resizeFrame = 0;
@@ -1001,6 +1063,7 @@ export function mountOnyxLanding() {
     window.removeEventListener("scroll", onScrollNav);
     window.removeEventListener("scroll", updateScroll);
     window.removeEventListener("resize", onResize);
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
     root.removeEventListener("focusin", handleFormFocusIn);
     root.removeEventListener("focusout", handleFormFocusOut);
     window.clearTimeout(formInteractionTimeout);
@@ -1012,9 +1075,9 @@ export function mountOnyxLanding() {
         disposeMaterial(object.material);
       }
     });
-    renderPass.dispose?.();
-    bloomPass.dispose?.();
-    composer.dispose?.();
+    renderPass?.dispose?.();
+    bloomPass?.dispose?.();
+    composer?.dispose?.();
     renderer.renderLists?.dispose?.();
     renderer.dispose();
     if (renderer.domElement.parentNode === sceneMount) {

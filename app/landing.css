@@ -1,5 +1,3 @@
-        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap");
-
         .landing-page {
           position: relative;
           min-height: 100vh;
@@ -8,7 +6,8 @@
           overflow-x: hidden;
           background: #000;
           color: #fff;
-          --font-landing: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          --font-landing: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          --font-mono-display: var(--font-share-tech-mono), monospace;
           --font-body: var(--font-landing);
           --font-display: var(--font-landing);
           font-family: var(--font-landing);
@@ -2445,7 +2444,7 @@
           );
           position: relative;
           margin-top: calc(.65rem + 32px);
-          font-family: "Share Tech Mono", monospace;
+          font-family: var(--font-mono-display);
           padding: clamp(1.45rem, 2.2vw, 2.15rem);
           border: 0;
           border-radius: 0;
@@ -3117,7 +3116,7 @@
 
         .landing-page .contact-form label,
         .landing-page .newsletter-form label {
-          font-family: "Inter", var(--font-landing);
+          font-family: var(--font-landing);
           font-size: .85rem;
           font-weight: 500;
           letter-spacing: normal;
@@ -3186,7 +3185,7 @@
         .landing-page .contact-form__error {
           margin: -.25rem 0 0;
           color: #f87171;
-          font-family: "Inter", var(--font-landing);
+          font-family: var(--font-landing);
           font-size: .82rem;
           line-height: 1.35;
         }
@@ -3341,7 +3340,7 @@
         .landing-page .newsletter-form__error {
           margin: -.25rem 0 0;
           color: #f87171;
-          font-family: "Inter", var(--font-landing);
+          font-family: var(--font-landing);
           font-size: .82rem;
           line-height: 1.35;
         }
@@ -3369,7 +3368,7 @@
           background: rgba(248, 255, 249, .96);
           color: #168a26;
           box-shadow: 0 12px 26px rgba(34, 197, 94, .18), 0 6px 16px rgba(0, 0, 0, .14);
-          font-family: "Inter", var(--font-landing);
+          font-family: var(--font-landing);
           animation: newsletterToastIn .26s ease-out both;
         }
 
@@ -3388,7 +3387,7 @@
         }
 
         .landing-page .newsletter-toast strong {
-          font-family: "Inter", var(--font-landing);
+          font-family: var(--font-landing);
           font-size: .88rem;
           font-weight: 500;
           line-height: 1.2;
@@ -3537,7 +3536,7 @@
 
         .landing-page .waitlist-modal__copy h2 {
           margin: 0;
-          font-family: "Inter", var(--font-landing);
+          font-family: var(--font-landing);
           font-size: clamp(1.5rem, 3.6vw, 2.05rem);
           font-weight: 500;
           letter-spacing: 0;
@@ -3555,7 +3554,7 @@
         .landing-page .waitlist-modal__copy p {
           margin: 0;
           color: rgba(255, 255, 255, .74);
-          font-family: "Inter", var(--font-landing);
+          font-family: var(--font-landing);
           font-size: clamp(.72rem, 1.25vw, .82rem);
           line-height: 1.35;
           white-space: nowrap;
@@ -3607,7 +3606,7 @@
           color: #fff;
           padding: 0 2.75rem;
           font: inherit;
-          font-family: "Inter", var(--font-landing);
+          font-family: var(--font-landing);
           font-size: .84rem;
           text-align: center;
           transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
@@ -3625,7 +3624,7 @@
           width: 100%;
           min-height: 46px;
           gap: .7rem;
-          font-family: "Inter", var(--font-landing);
+          font-family: var(--font-landing);
           color: #fff !important;
           font-size: .84rem;
           font-weight: 500;
