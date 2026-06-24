@@ -77,7 +77,7 @@ const audienceOrbits: AudienceOrbit[] = [
       {
         id: "researchers",
         title: "Researchers",
-        description: "More primarily in the mitigation layer, they can benefit from understanding how defense-in-depth increases quantum attack crack time. More research coming up to include in Onyx!",
+        description: "In the mitigation layer, they can benefit from understanding how defense-in-depth increases quantum attack crack time. More research coming up to include in Onyx!",
         Icon: HiOutlineAcademicCap,
         angle: "0deg",
       },
