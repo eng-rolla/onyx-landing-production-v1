@@ -3,6 +3,7 @@ import { Inter, Share_Tech_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
 import "./globals.css";
+import "./landing.css";
 
 const inter = Inter({
   subsets: ["latin"],

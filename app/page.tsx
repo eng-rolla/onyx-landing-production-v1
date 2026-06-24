@@ -1,6 +1,5 @@
 "use client";
 
-import "./landing.css";
 import Image from "next/image";
 import { ContactForm } from "@/components/contact-form";
 import { MitigationQuantumCanvas } from "@/components/mitigation-quantum-canvas";
@@ -239,6 +238,24 @@ export default function LandingPage() {
   const readinessRingCircumference = 2 * Math.PI * readinessRingRadius;
   const activeAudience = activeAudienceId === null ? null : audienceNodes.find((audience) => audience.id === activeAudienceId) ?? null;
   const invertAngle = (value: string) => (value.startsWith("-") ? value.slice(1) : `-${value}`);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Only the desktop (>1080px) layout is a scroll-scrubbed canvas narrative.
+    // Restoring a mid-sequence scroll position on refresh makes the runtime snap
+    // through layers while it boots (a ~1s flash). Always begin at the hero unless
+    // deep-linking a section. The mobile/tablet layout is a normal stacked
+    // document, so its native scroll restoration is left untouched.
+    if (window.innerWidth <= 1080) return;
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+    return () => {
+      window.history.scrollRestoration = previous;
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
