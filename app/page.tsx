@@ -401,8 +401,8 @@ export default function LandingPage() {
                 className="brand__logo"
                 src="/logo/onyx-logo-horizontal-white-transparent.png"
                 alt="Onyx"
-                width={204}
-                height={48}
+                width={666}
+                height={375}
                 priority
               />
             </a>
