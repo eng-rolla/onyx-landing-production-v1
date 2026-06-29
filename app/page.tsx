@@ -118,6 +118,7 @@ const audienceOrbits: AudienceOrbit[] = [
 ];
 
 const audienceNodes = audienceOrbits.flatMap((orbit) => orbit.nodes);
+let hasLoggedConsoleGreeting = false;
 
 // Display order for the mobile target-user cards: lead with Students, then
 // Vibe Coders, followed by the remaining audiences.
@@ -238,6 +239,14 @@ export default function LandingPage() {
   const readinessRingCircumference = 2 * Math.PI * readinessRingRadius;
   const activeAudience = activeAudienceId === null ? null : audienceNodes.find((audience) => audience.id === activeAudienceId) ?? null;
   const invertAngle = (value: string) => (value.startsWith("-") ? value.slice(1) : `-${value}`);
+
+  useEffect(() => {
+    if (hasLoggedConsoleGreeting) return;
+    hasLoggedConsoleGreeting = true;
+    console.log(
+      "Hai! Enjoying the website so far? Don't forget to join the waitlist! :)",
+    );
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
