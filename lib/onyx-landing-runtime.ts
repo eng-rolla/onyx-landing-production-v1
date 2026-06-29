@@ -150,7 +150,7 @@ export function mountOnyxLanding() {
   scene.fog = new THREE.FogExp2(0x000000, 0.012);
   // On tablet/mobile, keep the nebula + starfield but drop the central sphere
   // particle systems (the morphing "field" sphere and the "attack" burst).
-  const hideCoreParticles = window.innerWidth <= 1080;
+  let hideCoreParticles = window.innerWidth <= 1080;
   const isSafari =
     typeof navigator !== "undefined" &&
     /Safari/i.test(navigator.userAgent) &&
@@ -237,16 +237,40 @@ export function mountOnyxLanding() {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   sceneMount.appendChild(renderer.domElement);
 
-  const useDesktopBloom = window.innerWidth > 900;
-  const composer = useDesktopBloom ? new EffectComposer(renderer) : null;
-  const renderPass = useDesktopBloom ? new RenderPass(scene, camera) : null;
-  const bloomPass = useDesktopBloom
-    ? new UnrealBloomPass(new THREE.Vector2(initialViewportWidth, initialViewportHeight), 1.05, 0.55, 0.5)
-    : null;
-  if (composer && renderPass && bloomPass) {
-    composer.addPass(renderPass);
-    composer.addPass(bloomPass);
-  }
+  let composer = null;
+  let renderPass = null;
+  let bloomPass = null;
+
+  const disposePostProcessing = () => {
+    renderPass?.dispose?.();
+    bloomPass?.dispose?.();
+    composer?.dispose?.();
+    renderPass = null;
+    bloomPass = null;
+    composer = null;
+  };
+
+  const syncPostProcessing = (width, height, pixelRatio = getRendererPixelRatio()) => {
+    const shouldUseBloom = window.innerWidth > 900;
+    if (!shouldUseBloom) {
+      disposePostProcessing();
+      sceneMount.dataset.renderMode = "direct";
+      return;
+    }
+
+    if (!composer) {
+      composer = new EffectComposer(renderer);
+      renderPass = new RenderPass(scene, camera);
+      bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 1.05, 0.55, 0.5);
+      composer.addPass(renderPass);
+      composer.addPass(bloomPass);
+    }
+    composer.setPixelRatio(pixelRatio);
+    composer.setSize(width, height);
+    sceneMount.dataset.renderMode = "bloom";
+  };
+
+  syncPostProcessing(initialViewportWidth, initialViewportHeight);
 
   /*
    * Dev performance notes:
@@ -490,7 +514,7 @@ export function mountOnyxLanding() {
     blending: THREE.AdditiveBlending,
   }));
   field.visible = false;
-  if (!hideCoreParticles) scene.add(field);
+  scene.add(field);
 
   const ATT = Math.round(1200 * renderScale);
   const atkGeo = new THREE.BufferGeometry();
@@ -530,7 +554,7 @@ export function mountOnyxLanding() {
     blending: THREE.AdditiveBlending,
   }));
   attack.visible = false;
-  if (!hideCoreParticles) scene.add(attack);
+  scene.add(attack);
 
   const SH = Math.round(2500 * renderScale);
   const CR = Math.round(1600 * renderScale);
@@ -677,6 +701,8 @@ export function mountOnyxLanding() {
   let cleanedUp = false;
 
   function animate() {
+    animationFrameId = 0;
+    if (cleanedUp || !pageVisible || contextLost) return;
     animationFrameId = requestAnimationFrame(animate);
 
     if (formIsActive) {
@@ -994,11 +1020,14 @@ export function mountOnyxLanding() {
   let lastPixelRatio = 0;
   let resizeFrame = 0;
   let pageVisible = !document.hidden;
+  let contextLost = false;
 
   const applyResize = () => {
     const width = getSceneViewportWidth();
     const height = getSceneViewportHeight();
     const pixelRatio = getRendererPixelRatio();
+    hideCoreParticles = window.innerWidth <= 1080;
+    syncPostProcessing(width, height, pixelRatio);
     if (width === lastRenderWidth && height === lastRenderHeight && pixelRatio === lastPixelRatio) {
       syncFeatureRailPosition();
       return;
@@ -1010,7 +1039,6 @@ export function mountOnyxLanding() {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
-    composer?.setSize(width, height);
     syncFeatureRailPosition();
   };
 
@@ -1019,14 +1047,19 @@ export function mountOnyxLanding() {
     resizeFrame = requestAnimationFrame(() => {
       resizeFrame = 0;
       applyResize();
+      updateScroll();
+      startAnimation();
     });
   };
 
   applyResize();
   window.addEventListener("resize", onResize);
+  const sceneResizeObserver =
+    "ResizeObserver" in window ? new ResizeObserver(onResize) : null;
+  sceneResizeObserver?.observe(sceneMount);
 
   const startAnimation = () => {
-    if (animationFrameId || cleanedUp || !pageVisible) return;
+    if (animationFrameId || cleanedUp || !pageVisible || contextLost) return;
     animationFrameId = requestAnimationFrame(animate);
   };
 
@@ -1036,17 +1069,44 @@ export function mountOnyxLanding() {
     animationFrameId = 0;
   };
 
+  const resumeAnimation = () => {
+    pageVisible = !document.hidden;
+    if (!pageVisible || cleanedUp || contextLost) return;
+    applyResize();
+    updateScroll();
+    clock.getDelta();
+    startAnimation();
+  };
+
   const handleVisibilityChange = () => {
     pageVisible = !document.hidden;
     if (pageVisible) {
-      clock.getDelta();
-      startAnimation();
+      resumeAnimation();
     } else {
       stopAnimation();
     }
   };
 
+  const handleContextLost = (event) => {
+    event.preventDefault();
+    contextLost = true;
+    stopAnimation();
+  };
+
+  const handleContextRestored = () => {
+    contextLost = false;
+    disposePostProcessing();
+    lastRenderWidth = 0;
+    lastRenderHeight = 0;
+    lastPixelRatio = 0;
+    resumeAnimation();
+  };
+
   document.addEventListener("visibilitychange", handleVisibilityChange);
+  window.addEventListener("focus", resumeAnimation);
+  window.addEventListener("pageshow", resumeAnimation);
+  renderer.domElement.addEventListener("webglcontextlost", handleContextLost);
+  renderer.domElement.addEventListener("webglcontextrestored", handleContextRestored);
   startAnimation();
 
   const disposeMaterial = (material) => {
@@ -1072,21 +1132,25 @@ export function mountOnyxLanding() {
     window.removeEventListener("scroll", onScrollNav);
     window.removeEventListener("scroll", updateScroll);
     window.removeEventListener("resize", onResize);
+    window.removeEventListener("focus", resumeAnimation);
+    window.removeEventListener("pageshow", resumeAnimation);
     document.removeEventListener("visibilitychange", handleVisibilityChange);
+    renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
+    renderer.domElement.removeEventListener("webglcontextrestored", handleContextRestored);
     root.removeEventListener("focusin", handleFormFocusIn);
     root.removeEventListener("focusout", handleFormFocusOut);
     window.clearTimeout(formInteractionTimeout);
     featureObserver?.disconnect();
+    sceneResizeObserver?.disconnect();
     sceneMount.dataset.ready = "false";
+    delete sceneMount.dataset.renderMode;
     scene.traverse((object) => {
       object.geometry?.dispose?.();
       if (object.material) {
         disposeMaterial(object.material);
       }
     });
-    renderPass?.dispose?.();
-    bloomPass?.dispose?.();
-    composer?.dispose?.();
+    disposePostProcessing();
     renderer.renderLists?.dispose?.();
     renderer.dispose();
     if (renderer.domElement.parentNode === sceneMount) {
