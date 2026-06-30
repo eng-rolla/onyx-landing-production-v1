@@ -188,6 +188,8 @@ export default function LandingPage() {
   const faqTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const anchorJumpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const readinessSectionRef = useRef<HTMLElement | null>(null);
+  const assessmentSectionRef = useRef<HTMLElement | null>(null);
+  const mitigationSectionRef = useRef<HTMLElement | null>(null);
   const readinessAnimationFrameRef = useRef<number | null>(null);
   const readinessHasAnimatedRef = useRef(false);
   const [readinessValues, setReadinessValues] = useState<[number, number]>([0, 0]);
@@ -320,6 +322,51 @@ export default function LandingPage() {
 
     return () => {
       observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const sections = [assessmentSectionRef.current, mitigationSectionRef.current].filter(
+      (section): section is HTMLElement => Boolean(section),
+    );
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let observer: IntersectionObserver | null = null;
+
+    const setSectionPaused = (section: HTMLElement, paused: boolean) => {
+      section.classList.toggle("is-visible", !paused);
+      section.classList.toggle("is-paused", paused);
+    };
+
+    const observeSections = () => {
+      observer?.disconnect();
+      observer = null;
+
+      if (reducedMotion.matches) {
+        sections.forEach((section) => setSectionPaused(section, true));
+        return;
+      }
+
+      sections.forEach((section) => setSectionPaused(section, true));
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            setSectionPaused(entry.target as HTMLElement, !entry.isIntersecting);
+          });
+        },
+        { threshold: 0.01 },
+      );
+      sections.forEach((section) => observer?.observe(section));
+    };
+
+    observeSections();
+    reducedMotion.addEventListener("change", observeSections);
+
+    return () => {
+      observer?.disconnect();
+      reducedMotion.removeEventListener("change", observeSections);
+      sections.forEach((section) => {
+        section.classList.remove("is-visible", "is-paused");
+      });
     };
   }, []);
 
@@ -772,7 +819,7 @@ export default function LandingPage() {
                   </div>
                 </article>
 
-                <article className="feature-step feature-step--assessment" data-feature-step="1" aria-label="Assessment Level">
+                <article ref={assessmentSectionRef} className="feature-step feature-step--assessment" data-feature-step="1" aria-label="Assessment Level">
                   <div className="feature-step__media feature-assessment-media">
                     <Image
                       src="/landing/laptop-ui.png"
@@ -848,7 +895,7 @@ export default function LandingPage() {
                   </div>
                 </article>
 
-                <article className="feature-step feature-step--mitigation" data-feature-step="2" aria-label="Mitigation Layer">
+                <article ref={mitigationSectionRef} className="feature-step feature-step--mitigation" data-feature-step="2" aria-label="Mitigation Layer">
                   <div className="feature-step__content feature-mitigation-content feature-mitigation-hud">
                     <h3>Layered Mitigation in Action</h3>
                     <span className="feature-mitigation-rule" aria-hidden="true" />

@@ -2146,6 +2146,25 @@
           }
         }
 
+        /* Sections stay rendered, but their continuous decorative keyframes are
+           paused until IntersectionObserver adds is-visible. Pausing preserves
+           each animation's current frame and avoids off-screen CPU/GPU work. */
+        .landing-page .feature-step--assessment .feature-assessment-card__figure--dots,
+        .landing-page .feature-step--assessment .feature-assessment-card__figure--waves path,
+        .landing-page .feature-step--assessment .feature-assessment-card__figure--flow span,
+        .landing-page .feature-step--assessment .feature-assessment-orbit__ring,
+        .landing-page .feature-step--assessment .feature-assessment-orbit__dot {
+          animation-play-state: paused;
+        }
+
+        .landing-page .feature-step--assessment.is-visible .feature-assessment-card__figure--dots,
+        .landing-page .feature-step--assessment.is-visible .feature-assessment-card__figure--waves path,
+        .landing-page .feature-step--assessment.is-visible .feature-assessment-card__figure--flow span,
+        .landing-page .feature-step--assessment.is-visible .feature-assessment-orbit__ring,
+        .landing-page .feature-step--assessment.is-visible .feature-assessment-orbit__dot {
+          animation-play-state: running;
+        }
+
         .landing-page .feature-step__content {
           display: grid;
           gap: 1rem;
@@ -2719,7 +2738,27 @@
           100% { transform: translate3d(100%, -50%, 0); opacity: 0; }
         }
 
+        /* Only the continuously looping HUD decorations are observer-controlled;
+           slide transitions and interactive hover/focus effects remain untouched. */
+        .landing-page .feature-step--mitigation .feature-mitigation-hud__scan,
+        .landing-page .feature-step--mitigation .feature-mitigation-hud__wire::after {
+          animation-play-state: paused;
+        }
+
+        .landing-page .feature-step--mitigation.is-visible .feature-mitigation-hud__scan,
+        .landing-page .feature-step--mitigation.is-visible .feature-mitigation-hud__wire::after {
+          animation-play-state: running;
+        }
+
         @media (prefers-reduced-motion: reduce) {
+          .landing-page .feature-step--assessment .feature-assessment-card__figure--dots,
+          .landing-page .feature-step--assessment .feature-assessment-card__figure--waves path,
+          .landing-page .feature-step--assessment .feature-assessment-card__figure--flow span,
+          .landing-page .feature-step--assessment .feature-assessment-orbit__ring,
+          .landing-page .feature-step--assessment .feature-assessment-orbit__dot {
+            animation: none;
+            animation-play-state: paused;
+          }
           .landing-page .feature-mitigation-hud__scan { animation: none; opacity: 0; will-change: auto; }
           .landing-page .feature-mitigation-hud__body { animation: none; }
           .landing-page .feature-mitigation-hud__wire::after { animation: none; opacity: 0; will-change: auto; }
