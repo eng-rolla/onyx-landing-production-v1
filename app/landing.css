@@ -35,14 +35,18 @@
 
         .landing-page .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: transparent; transition: box-shadow .25s ease, background-color .25s ease; }
         .landing-page .nav-inner { height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 28px; max-width: 1240px; margin: 0 auto; }
+        /* This filter runs only during a short user-triggered hover, not in a
+           continuous loop, so keeping it preserves the exact logo silhouette. */
         .landing-page .brand { display: inline-flex; align-items: center; text-decoration: none; transition: filter .2s ease; }
         .landing-page .brand:hover { filter: drop-shadow(0 0 14px rgba(255,255,255,0.2)); }
         .landing-page .brand__logo { width: auto; height: clamp(120px, 9vw, 120px); object-fit: contain; }
         .landing-page .nav-links { list-style: none; display: flex; align-items: center; gap: clamp(18px, 3vw, 42px); padding: 0; margin: 0; }
         .landing-page .nav-links a { position: relative; font-family: var(--font-landing); text-decoration: none; color: rgba(255,255,255,0.88); font-weight: 500; font-size: .9rem; letter-spacing: -.01em; transition: color .25s ease, text-shadow .25s ease; }
         .landing-page .nav-links a:hover { color: var(--yellow); text-shadow: 0 0 8px rgba(255,246,166,.5); }
-        .landing-page .nav-links a::after { content: ""; position: absolute; left: 0; bottom: -10px; height: 2px; width: 0%; background: linear-gradient(90deg, var(--cyan), transparent); box-shadow: 0 0 10px rgba(0,232,255,.6); transition: width .25s ease; }
-        .landing-page .nav-links a:hover::after { width: 100%; }
+        /* The underline keeps its full layout width and reveals with scaleX,
+           avoiding width animation and its repeated layout calculations. */
+        .landing-page .nav-links a::after { content: ""; position: absolute; left: 0; bottom: -10px; height: 2px; width: 100%; background: linear-gradient(90deg, var(--cyan), transparent); box-shadow: 0 0 10px rgba(0,232,255,.6); transform: scaleX(0); transform-origin: left center; transition: transform .25s ease; }
+        .landing-page .nav-links a:hover::after { transform: scaleX(1); }
         .landing-page .btn-cta { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 20px; border: 0; border-radius: 10px; font-family: var(--font-landing); text-decoration: none; font-weight: 600; letter-spacing: .01em; color: #fff; background: linear-gradient(180deg, var(--cyan), var(--cyan-700)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,232,255,.28); cursor: pointer; transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease; }
         .landing-page .btn-cta:hover { color: #fff; background: linear-gradient(180deg, var(--yellow), #ffe26a); box-shadow: 0 10px 28px rgba(255,246,166,.35), 0 0 18px rgba(255,246,166,.65); transform: translateY(-1px); }
 
@@ -829,7 +833,10 @@
             0 0 20px rgba(212, 247, 255, 0.3),
             0 0 48px rgba(34, 211, 238, 0.28),
             0 0 76px rgba(168, 85, 247, 0.2);
+          /* Preserve the original glow as a static paint and pulse only
+             compositor-friendly scale/opacity instead of box-shadow. */
           animation: audienceCenterPulse 2.8s ease-in-out infinite;
+          will-change: transform, opacity;
         }
 
         .landing-page .audience-orbit__lane {
@@ -1114,15 +1121,11 @@
         @keyframes audienceCenterPulse {
           0%, 100% {
             transform: translate(-50%, -50%) scale(0.94);
-            box-shadow:
-              0 0 16px rgba(212, 247, 255, 0.22),
-              0 0 34px rgba(34, 211, 238, 0.22);
+            opacity: .86;
           }
           50% {
             transform: translate(-50%, -50%) scale(1.08);
-            box-shadow:
-              0 0 22px rgba(255, 246, 166, 0.24),
-              0 0 46px rgba(34, 211, 238, 0.32);
+            opacity: 1;
           }
         }
 
@@ -1955,6 +1958,9 @@
           -webkit-mask-image: linear-gradient(90deg, transparent, #000 26%, #000 100%);
           mask-image: linear-gradient(90deg, transparent, #000 26%, #000 100%);
           animation: assessmentDotsPulse 2.8s ease-in-out infinite;
+          /* Transform and opacity stay on the compositor; the previous animated
+             0.2px blur was visually negligible but forced continuous repainting. */
+          will-change: transform, opacity;
         }
 
         .landing-page .feature-assessment-card__figure--waves svg {
@@ -2092,12 +2098,10 @@
           0%, 100% {
             opacity: .32;
             transform: translateY(-50%) scale(.98);
-            filter: blur(.2px);
           }
           45% {
             opacity: .88;
             transform: translateY(-50%) scale(1.01);
-            filter: blur(0);
           }
         }
 
@@ -2508,19 +2512,22 @@
           left: 0;
           right: 0;
           top: 0;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(34, 211, 238, .5), transparent);
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(34, 211, 238, .5), transparent) top / 100% 2px no-repeat;
           opacity: 0;
           z-index: 1;
           pointer-events: none;
           animation: mitigationHudScan 6s linear infinite;
+          /* A full-height transparent layer lets translateY(100%) cover the
+             panel height, replacing the layout-triggering top animation. */
+          will-change: transform, opacity;
         }
 
         @keyframes mitigationHudScan {
-          0% { top: 0; opacity: 0; }
+          0% { transform: translate3d(0, 0, 0); opacity: 0; }
           12% { opacity: .5; }
           88% { opacity: .5; }
-          100% { top: 100%; opacity: 0; }
+          100% { transform: translate3d(0, 100%, 0); opacity: 0; }
         }
 
         .landing-page .feature-mitigation-hud__topbar {
@@ -2692,26 +2699,30 @@
           position: absolute;
           top: 50%;
           left: 0;
-          width: 26px;
+          width: 100%;
           height: 4px;
-          transform: translateY(-50%);
+          transform: translate3d(0, -50%, 0);
           border-radius: 999px;
-          background: linear-gradient(90deg, transparent, #e3fdff, transparent);
-          box-shadow: 0 0 12px rgba(196, 252, 255, .9);
+          background:
+            radial-gradient(ellipse 22px 7px at 13px 50%, rgba(196, 252, 255, .72), transparent 72%) left center / 40px 14px no-repeat,
+            linear-gradient(90deg, transparent, #e3fdff, transparent) left center / 26px 4px no-repeat;
           animation: mitigationWirePulse 2.6s linear infinite;
+          /* The pulse is painted once inside a full-width transparent layer;
+             translating that layer replaces the old left animation. */
+          will-change: transform, opacity;
         }
 
         @keyframes mitigationWirePulse {
-          0% { left: 0; opacity: 0; }
+          0% { transform: translate3d(0, -50%, 0); opacity: 0; }
           14% { opacity: 1; }
           86% { opacity: 1; }
-          100% { left: 100%; opacity: 0; }
+          100% { transform: translate3d(100%, -50%, 0); opacity: 0; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .landing-page .feature-mitigation-hud__scan { animation: none; opacity: 0; }
+          .landing-page .feature-mitigation-hud__scan { animation: none; opacity: 0; will-change: auto; }
           .landing-page .feature-mitigation-hud__body { animation: none; }
-          .landing-page .feature-mitigation-hud__wire::after { animation: none; opacity: 0; }
+          .landing-page .feature-mitigation-hud__wire::after { animation: none; opacity: 0; will-change: auto; }
         }
 
         .landing-page .feature-mitigation-list {
@@ -4161,8 +4172,10 @@
             width: 4px;
             height: 26px;
             transform: translateX(-50%);
+            background: linear-gradient(180deg, transparent, #e3fdff, transparent);
             animation: none;
             opacity: .6;
+            will-change: auto;
           }
           .landing-page .mitigation-quantum {
             width: min(520px, 100%);
