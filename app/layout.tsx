@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
 import { Inter, Share_Tech_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
 import "./globals.css";
 import "./landing.css";
+import { siteMetadata } from "./seo-metadata";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,11 +19,7 @@ const shareTechMono = Share_Tech_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Onyx",
-  description:
-    "Onyx prepares users for the quantum era through awareness, assessment, and defense-in-depth mitigation.",
-};
+export const metadata = siteMetadata;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
