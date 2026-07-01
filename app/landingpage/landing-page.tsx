@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ContactForm } from "@/components/contact-form";
 import { MitigationQuantumCanvas } from "@/components/mitigation-quantum-canvas";
 import { NewsletterForm } from "@/components/newsletter-form";
@@ -222,7 +223,7 @@ export default function LandingPage() {
      {
       question: "Why does Onyx assess both IT and OT environments?",
       answer:
-        "Quantum risks do not just affect traditional IT. In fact, CISA has highlighted that Operational Technology (OT) and Industrial Control Systems (ICS) may face long-term risks from quantum computing, and migrating these environments to post-quantum cryptography is a multi-year process. This is because OT environments often rely on legacy systems which are difficult to patch or replace; hence, dealing with it is not a reactive process, but rather a long, proactive process. Onyx is unique because it is an OT-aware quantum resilience platform, not just focusing on IT. It rather helps individuals and organizations assess IT and OT exposure early, without storing sensitive data, so they can plan migration before quantum threats become urgent.",
+        "Quantum risks do not only affect traditional IT. Critical infrastructure often includes OT and ICS environments that rely on legacy systems, long maintenance cycles, and protocols that are difficult to patch or replace. While many OT protocols do not include built-in encryption, cryptography still exists around OT through VPNs, TLS, certificates, remote access, data historians, engineering workstations, HMIs, gateways, and firmware updates. Onyx assesses both IT and OT exposure early so organizations can discover cryptographic dependencies, understand where defense-in-depth is needed, and plan post-quantum migration before quantum threats become urgent."
     },
     {
       question: "Can’t I just ask an AI agent to check my code, website, or crypto risks?",
@@ -819,7 +820,7 @@ export default function LandingPage() {
                   </div>
                 </article>
 
-                <article ref={assessmentSectionRef} className="feature-step feature-step--assessment" data-feature-step="1" aria-label="Assessment Level">
+                <article id="assessments" ref={assessmentSectionRef} className="feature-step feature-step--assessment" data-feature-step="1" aria-label="Assessment Level">
                   <div className="feature-step__media feature-assessment-media">
                     <Image
                       src="/landing/laptop-ui.png"
@@ -895,7 +896,7 @@ export default function LandingPage() {
                   </div>
                 </article>
 
-                <article ref={mitigationSectionRef} className="feature-step feature-step--mitigation" data-feature-step="2" aria-label="Mitigation Layer">
+                <article id="mitigation" ref={mitigationSectionRef} className="feature-step feature-step--mitigation" data-feature-step="2" aria-label="Mitigation Layer">
                   <div className="feature-step__content feature-mitigation-content feature-mitigation-hud">
                     <h3>Layered Mitigation in Action</h3>
                     <span className="feature-mitigation-rule" aria-hidden="true" />
@@ -1081,6 +1082,10 @@ export default function LandingPage() {
                     <a href="#features">Features</a>
                     <a href="#faqs">FAQs</a>
                     <a href="#contact">Contact</a>
+                  </div>
+                  <div className="footer-floor__column">
+                    <strong>About Onyx</strong>
+                    <Link href="/updates">Updates</Link>
                   </div>
                 </div>
               </div>
