@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { SITE_URL } from "@/lib/site-url";
 
-const title = "Onyx | Quantum-Ready Security";
+const title = "Onyx";
 const description =
   "Onyx helps users prepare for quantum-era cybersecurity risks through awareness, assessment, and defense-in-depth mitigation";
 
